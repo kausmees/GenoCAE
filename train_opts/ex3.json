@@ -1,0 +1,23 @@
+{
+  "learning_rate": 0.00032,
+  "batch_size": 10,
+  "noise_std": 0.0032,
+  "n_samples": -1,
+  "loss": {
+    "module": "tf.keras.losses", 
+    "class": "CategoricalCrossentropy", 
+    "args": {
+	"from_logits": false}},
+  "regularizer": {
+    "reg_factor": 1.0e-07,
+    "module": "tf.keras.regularizers",
+    "class": "l2"
+  },
+"lr_scheme": {
+    "module": "tf.keras.optimizers.schedules", 
+    "class": "ExponentialDecay", 
+    "args": {
+         "decay_rate": 0.96, 
+         "decay_steps": 100,
+         "staircase": false}}
+}
