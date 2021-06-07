@@ -70,8 +70,8 @@ class data_generator_ae:
 	def _define_samples(self):
 		ind_pop_list = get_ind_pop_list(self.filebase)
 
-		self.sample_idx_all = range(len(ind_pop_list))
-		self.sample_idx_train = range(len(ind_pop_list))
+		self.sample_idx_all = np.arange(len(ind_pop_list))
+		self.sample_idx_train = np.arange(len(ind_pop_list))
 
 
 		self.n_train_samples_orig = len(self.sample_idx_all)
@@ -114,6 +114,8 @@ class data_generator_ae:
 		if self.impute_missing:
 			self._impute_missing(genotypes)
 
+		genotypes = np.array(genotypes, order='F') # Cheeky, this will then be transposed, so we have individual-major order
+
 		genotypes_train = genotypes[:, self.sample_idx_all]
 
 		normalization_method = getattr(normalization, "normalize_genos_"+self.normalization_mode)
@@ -124,7 +126,7 @@ class data_generator_ae:
 																					 **self.normalization_options)
 		self.scaler = scaler
 
-		self.genotypes_train_orig = np.array(genotypes_train_normed)
+		self.genotypes_train_orig = np.array(genotypes_train_normed, dtype = np.dtype('f4'), order='C')
 
 	def get_nonnormalized_data(self):
 		'''
@@ -148,7 +150,7 @@ class data_generator_ae:
 		else:
 			genotypes[genotypes == 9.0] = self.missing_val
 
-		genotypes_train = genotypes[:, self.sample_idx_train].T
+		genotypes_train = np.array(genotypes[:, self.sample_idx_train].T, order='C')
 
 		return genotypes_train
 
@@ -261,10 +263,10 @@ class data_generator_ae:
 				 ind_pop_list_train_batch (n_samples x 2) : individual and population IDs of train batch samples
 
 		'''
-		input_data_train = np.full((n_samples_batch, self.genotypes_train_orig[self.sample_idx_train].shape[1], 2), 1.0)
+		input_data_train = np.full((n_samples_batch, self.genotypes_train_orig.shape[1], 2), 1.0, dtype=np.dtype('f4'))
 
 		indices_this_batch = self._get_indices_looped(n_samples_batch)
-		genotypes_train = np.copy(self.genotypes_train_orig[self.sample_idx_train][indices_this_batch])
+		genotypes_train = np.copy(self.genotypes_train_orig[self.sample_idx_train[indices_this_batch]])
 
 		mask_train = np.full(input_data_train[:,:,0].shape, 1)
 
@@ -285,9 +287,9 @@ class data_generator_ae:
 		input_data_train[:,:,0] = genotypes_train
 		input_data_train[:,:,1] = mask_train
 
-		targets = self.genotypes_train_orig[self.sample_idx_train][indices_this_batch]
+		targets = self.genotypes_train_orig[self.sample_idx_train[indices_this_batch]]
 
-		return input_data_train, targets, self.ind_pop_list_train_orig[self.sample_idx_train][indices_this_batch]
+		return input_data_train, targets, self.ind_pop_list_train_orig[self.sample_idx_train[indices_this_batch]]
 
 
 	def get_train_set(self, sparsify):
@@ -904,6 +906,8 @@ def get_test_samples_stratified(genotypes, ind_pop_list, test_split):
 
 		sample_idx = range(len(genotypes))
 		genotypes_train, genotypes_test, sample_idx_train, sample_idx_test, pops_train, pops_test = train_test_split(genotypes, sample_idx, pop_list, test_size=test_split, stratify=pop_list)
+		sample_idx_train = np.array(sample_idx_train)
+		sample_idx_test = np.array(sample_idx_test)
 
 		pops_train_recon = pop_list[sample_idx_train]
 		pops_test_recon = pop_list[sample_idx_test]
