@@ -727,7 +727,7 @@ if __name__ == "__main__":
 
 
 			if e % save_interval == 0:
-
+				startTime = datetime.now()
 				valid_losses = []
 				for jj in range(n_valid_batches):
 					start = jj*batch_size_valid
@@ -744,13 +744,15 @@ if __name__ == "__main__":
 					valid_loss_batch += sum(autoencoder.losses)
 					valid_losses.append(valid_loss_batch)
 
-				print("--- Valid loss: {:.4f}".format(np.average(valid_losses)))
-
 				if n_valid_samples > 0:
 					with valid_writer.as_default():
 						tf.summary.scalar('loss', np.average(valid_losses), step=step_counter)
 
+				valid_time = (datetime.now() - startTime).total_seconds()
+				print("--- Valid loss: {:.4f}  time: {}".format(np.average(valid_losses), valid_time))
+
 				save_ae_weights(effective_epoch, train_directory, autoencoder)
+
 
 		outfilename = train_directory + "/" + "train_times.csv"
 
