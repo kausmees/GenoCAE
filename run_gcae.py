@@ -17,7 +17,7 @@ Options:
   --data_opts_id=<name> data options id, corresponding to a file data_opts/data_opts_id.json
   --epochs<num>         number of epochs to train
   --resume_from<num>	saved epoch to resume training from. set to -1 for latest saved epoch.
-  --save_interval<num>	epoch intervals at which to save state of model
+  --save_interval<num>	epoch intervals at which to save state of model, abd at which to calculate the valid loss
   --trainedmodelname=<name> name of the model training directory to fetch saved model state from when project/plot/evaluating
   --pdata=<name>     	file prefix, not including path, of data to project/plot/evaluate. if not specified, assumed to be the same the model was trained on.
   --epoch<num>          epoch at which to project/plot/evaluate data. if not specified, all saved epochs will be used
@@ -326,6 +326,17 @@ def get_batches(n_samples, batch_size):
 	return n_batches, n_samples_last_batch
 
 def alfreqvector(y_pred):
+	'''
+	Get a probability distribution over genotypes from y_pred.
+	Assumes y_pred is raw model output, one scalar value per genotype.
+
+	Scales this to (0,1) and interprets this as a allele frequency, uses formula
+	for Hardy-Weinberg equilibrium to get probabilities for genotypes [0,1,2].
+
+	:param y_pred: (n_samples x n_markers) tensor of raw network output for each sample and site
+	:return: (n_samples x n_markers x 3 tensor) of genotype probabilities for each sample and site
+	'''
+
 	if len(y_pred.shape) == 2:
 		alfreq = tf.keras.activations.sigmoid(y_pred)
 		alfreq = tf.expand_dims(alfreq, -1)
@@ -643,8 +654,11 @@ if __name__ == "__main__":
 
 		print("\n______________________________ Train ______________________________")
 
-		# for printing dimensions of layers
-		# output_valid_batch, encoded_data_valid_batch = autoencoder(input_valid[0:2], is_training = False, verbose = True)
+		# a small run-through of the model with just 2 samples for printing the dimensions of the layers (verbose=True)
+		print("Model layers and dimensions:")
+		print("-----------------------------")
+
+		output_valid_batch, encoded_data_valid_batch = autoencoder(input_valid[0:2], is_training = False, verbose = True)
 
 		######### Create objects for tensorboard summary ###############################
 
@@ -935,7 +949,7 @@ if __name__ == "__main__":
 
 		try:
 			plot_genotype_hist(np.array(genotypes_output), "{0}/{1}_e{2}".format(results_directory, "output_as_genotypes", epoch))
-			plot_genotype_hist(np.array(true_genotypes), "{0}/{1}_e{2}".format(results_directory, "true_genotypes", epoch))
+			plot_genotype_hist(np.array(true_genotypes), "{0}/{1}".format(results_directory, "true_genotypes"))
 		except:
 			pass
 

@@ -16,7 +16,7 @@ pip3
 #### Install Python packages:
 
 
-    $ cd GCAE/
+    $ cd GenoCAE/
     $ pip3 install -r requirements.txt
 
 
@@ -25,7 +25,7 @@ pip3
 The training and evaluation of models is wrapped by a command-line interface (CLI)
 
 
-    $ cd GCAE/
+    $ cd GenoCAE/
     $ python3 run_gcae.py --help
 
     GenoCAE.
@@ -40,7 +40,7 @@ The training and evaluation of models is wrapped by a command-line interface (CL
     Options:
       -h --help             show this screen
       --datadir=<name>      directory where sample data is stored
-      --data=<name>         file prefix of the data files (EIGENSTRAT of PLINK format)
+      --data=<name>         file prefix of the data files (EIGENSTRAT or PLINK format)
       --trainedmodeldir=<name>     base path where to save model training directories. default: ae_out/
       --model_id=<name>     model id, corresponding to a file models/model_id.json
       --train_opts_id=<name>train options id, corresponding to a file train_opts/train_opts_id.json
@@ -178,7 +178,7 @@ Corresponds to the below architecture:
 
 * Giving a layer the name **"nms"** denotes where the marker-specific variable that is green in the figure should be concatenated
 
-
+* The variable **"ns"** is a list that contains the size of the length dimension of the data (the dimension that corresponds to the length of the genetic sequence). When a layer that modifies this (e.g. maxpooling) in the encoder is added, the new length is added to **ns**, so that it can be used to reconstruct the lengths in the decoder (e.g. when upsamling). The values in **ns** will thus depend on the length of the input data. For the data **HumanOrigins249_tiny** which is used in the [Examples](#examples) section below, **ns=\[9259,4630\]**. When a layer argument such as "units" or "target_shape" that should be an int is specified as a string, it will be evaluated as a python expression (and should therefore be a valid expression that evaluates to an int).
 
 ### train options
 These options affect the training of the model. Passed to the CLI with option **--train_opts**, specifying a json file in the directory [train_opts/](train_opts/)
@@ -276,7 +276,7 @@ optional:
 ### Training
 Command to train a model on the example data :
 
-    $ cd GCAE/
+    $ cd GenoCAE/
     $ python3 run_gcae.py train --datadir example_tiny/ --data HumanOrigins249_tiny --model_id M1  --epochs 20 --save_interval 2  --train_opts_id ex3  --data_opts_id b_0_4
 
 
@@ -290,11 +290,14 @@ The following files are also created:
 * save_times.csv: time in seconds to save each epoch to disk
 
 
+You can [install tensorboard](https://pypi.org/project/tensorboard/) to use their suite of web tools for inspecting TensorFlow runs.
+
+
 Tensorboard can be started using:
 
     $ tensorboard --logdir ae_out/ae.M1.ex3.b_0_4.HumanOrigins249_tiny/
 
-on localhost:6006 in the browser
+it will be displayed on localhost:6006 in the browser
 
 
 ### Projecting
@@ -304,7 +307,7 @@ The saved model weights in a model training directory are used to reload the mod
 > The data set to project is specified using the **pdata** argument. If not specified, the same set as was used for training is assumed.
 
 
-    $ cd GCAE/
+    $ cd GenoCAE/
     $ python3 run_gcae.py project --datadir example_tiny/ --data HumanOrigins249_tiny --model_id M1 --train_opts_id ex3  --data_opts_id b_0_4 --superpops example_tiny/HO_superpopulations
 
 This creates a directory named after the projected data containing:
@@ -320,7 +323,7 @@ This creates a directory named after the projected data containing:
 > When projecting/plotting/evaluating: the location to look for a trained model can either be specified with the same options given to the train commamd (model_id, data_opts_id, etc.) OR by giving the entire directory name with the --trainedmodelname argument.
 > e.g.
 
-    $ cd GCAE/
+    $ cd GenoCAE/
     $ python3 run_gcae.py project --datadir example_tiny/  --trainedmodelname ae.M1.ex3.b_0_4.HumanOrigins249_tiny --superpops example_tiny/HO_superpopulations
 
 
@@ -328,7 +331,7 @@ This creates a directory named after the projected data containing:
 
 The encoded data per epoch that is stored in the file **encoded_data.h5** created by the project command is plotted (generating the same plots as the project command).
 
-    $ cd GCAE/
+    $ cd GenoCAE/
     $ python3 run_gcae.py plot --datadir example_tiny/ --trainedmodelname ae.M1.ex3.b_0_4.HumanOrigins249_tiny --superpops example_tiny/HO_superpopulations
 
 
@@ -336,7 +339,7 @@ The encoded data per epoch that is stored in the file **encoded_data.h5** create
 
 An animation visualizing the dimensionality reduction over the saved epochs **encoded_data.h5** is created.
 
-    $ cd GCAE/
+    $ cd GenoCAE/
     $ python3 run_gcae.py animate --datadir example_tiny/ --trainedmodelname ae.M1.ex3.b_0_4.HumanOrigins249_tiny --superpops example_tiny/HO_superpopulations
 
 
@@ -346,7 +349,7 @@ The encoded data per epoch that is stored in the file **encoded_data.h5** create
 are passed using the --metrics option. Currently implemented metrics are hull_error and f1_score_k, both of which are a measure of how well the encoding
 clusters populations.
 
-    $ cd GCAE/
+    $ cd GenoCAE/
     $ python3 run_gcae.py evaluate --metrics "hull_error,f1_score_3" --datadir example_tiny/ --trainedmodelname ae.M1.ex3.b_0_4.HumanOrigins249_tiny  --superpops example_tiny/HO_superpopulations
 
 
