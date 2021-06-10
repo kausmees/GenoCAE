@@ -17,7 +17,7 @@ Options:
   --data_opts_id=<name> data options id, corresponding to a file data_opts/data_opts_id.json
   --epochs<num>         number of epochs to train
   --resume_from<num>	saved epoch to resume training from. set to -1 for latest saved epoch.
-  --save_interval<num>	epoch intervals at which to save state of model, abd at which to calculate the valid loss
+  --save_interval<num>	epoch intervals at which to save state of model, and at which to calculate the valid loss
   --trainedmodelname=<name> name of the model training directory to fetch saved model state from when project/plot/evaluating
   --pdata=<name>     	file prefix, not including path, of data to project/plot/evaluate. if not specified, assumed to be the same the model was trained on.
   --epoch<num>          epoch at which to project/plot/evaluate data. if not specified, all saved epochs will be used
@@ -162,7 +162,7 @@ class Autoencoder(Model):
 		counter = 1
 
 		if verbose:
-			print("adding layer {0}".format(counter))
+			print("layer {0}".format(counter))
 			print("--- type: {0}".format(type(first_layer)))
 
 		x = first_layer(inputs=input_data)
@@ -187,7 +187,7 @@ class Autoencoder(Model):
 			counter += 1
 
 			if verbose:
-				print("adding layer {0}: {1} ({2}) ".format(counter, layer_name, type(layer_def)))
+				print("layer {0}: {1} ({2}) ".format(counter, layer_name, type(layer_def)))
 
 			if layer_name == "dropout":
 				x = layer_def(x, training = is_training)
@@ -343,6 +343,20 @@ def alfreqvector(y_pred):
 		return tf.concat(((1-alfreq) ** 2, 2 * alfreq * (1 - alfreq), alfreq ** 2), axis=-1)
 	else:
 		return tf.nn.softmax(y_pred)
+
+def save_ae_weights(epoch, train_directory, autoencoder):
+	weights_file_prefix = train_directory + "/weights/" + str(epoch)
+	startTime = datetime.now()
+	if os.path.isdir(weights_file_prefix):
+		newname = train_directory+"_"+str(time.time())
+		os.rename(train_directory, newname)
+		print("... renamed " + train_directory + " to  " + newname)
+
+	autoencoder.save_weights(weights_file_prefix, save_format ="tf")
+	save_time = (datetime.now() - startTime).total_seconds()
+	save_times.append(save_time)
+	print("-------- Save time: {0} dir: {1}".format(save_time, weights_file_prefix))
+
 
 if __name__ == "__main__":
 	print("tensorflow version {0}".format(tf.__version__))
@@ -710,7 +724,7 @@ if __name__ == "__main__":
 			print("")
 			print("Epoch: {}/{}...".format(effective_epoch, epochs+resume_from))
 			print("--- Train loss: {:.4f}  time: {}".format(np.average(train_losses), train_time))
-			weights_file_prefix = train_directory + "/weights/" + str(effective_epoch)
+
 
 			if e % save_interval == 0:
 
@@ -736,18 +750,7 @@ if __name__ == "__main__":
 					with valid_writer.as_default():
 						tf.summary.scalar('loss', np.average(valid_losses), step=step_counter)
 
-
-				startTime = datetime.now()
-				if os.path.isdir(weights_file_prefix):
-					newname = train_directory+"_"+str(time.time())
-					os.rename(train_directory, newname)
-					print("... renamed " + train_directory + " to  " + newname)
-
-				autoencoder.save_weights(weights_file_prefix, save_format ="tf")
-				save_time = (datetime.now() - startTime).total_seconds()
-				save_times.append(save_time)
-				save_epochs.append(effective_epoch)
-				print("-------- Save time: {0} dir: {1}".format(save_time, weights_file_prefix))
+				save_ae_weights(effective_epoch, train_directory, autoencoder)
 
 		outfilename = train_directory + "/" + "train_times.csv"
 

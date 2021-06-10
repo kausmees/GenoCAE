@@ -518,7 +518,7 @@ class PopulationScatter(object):
 	def setup_plot(self):
 		"""Initial drawing of the scatter plot."""
 		x, y, s, c = next(self.stream).T
-
+		self.ax.clear()
 		self.scat = self.ax.scatter(x, y, c=c, edgecolor="k", s=60)
 		self.ax.set_title("Epoch {0}".format(self.epoch))
 
