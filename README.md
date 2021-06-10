@@ -1,6 +1,6 @@
 # GenoCAE
 
-Convolutional autoencoder for genotype data
+Convolutional autoencoder for genotype data, as described in [1]
 
 ## Installation
 (examples for linux)
@@ -373,3 +373,9 @@ Dimensionality reduction:
 Legend:
 
 ![Legend](images/legend_HO_tiny.png)
+
+
+## References
+
+ * [1] Ausmees, Kristiina and Nettelblad, Carl. "A deep learning framework for characterization of genotype data." bioRxiv (2020). [here](https://www.biorxiv.org/content/10.1101/2020.09.30.320994v1.abstract)
+
