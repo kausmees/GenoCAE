@@ -17,7 +17,7 @@ Options:
   --data_opts_id=<name> data options id, corresponding to a file data_opts/data_opts_id.json
   --epochs<num>         number of epochs to train
   --resume_from<num>	saved epoch to resume training from. set to -1 for latest saved epoch.
-  --save_interval<num>	epoch intervals at which to save state of model
+  --save_interval<num>	epoch intervals at which to save state of model, and at which to calculate the valid loss
   --trainedmodelname=<name> name of the model training directory to fetch saved model state from when project/plot/evaluating
   --pdata=<name>     	file prefix, not including path, of data to project/plot/evaluate. if not specified, assumed to be the same the model was trained on.
   --epoch<num>          epoch at which to project/plot/evaluate data. if not specified, all saved epochs will be used
@@ -162,7 +162,7 @@ class Autoencoder(Model):
 		counter = 1
 
 		if verbose:
-			print("adding layer {0}".format(counter))
+			print("layer {0}".format(counter))
 			print("--- type: {0}".format(type(first_layer)))
 
 		x = first_layer(inputs=input_data)
@@ -187,7 +187,7 @@ class Autoencoder(Model):
 			counter += 1
 
 			if verbose:
-				print("adding layer {0}: {1} ({2}) ".format(counter, layer_name, type(layer_def)))
+				print("layer {0}: {1} ({2}) ".format(counter, layer_name, type(layer_def)))
 
 			if layer_name == "dropout":
 				x = layer_def(x, training = is_training)
@@ -326,12 +326,37 @@ def get_batches(n_samples, batch_size):
 	return n_batches, n_samples_last_batch
 
 def alfreqvector(y_pred):
+	'''
+	Get a probability distribution over genotypes from y_pred.
+	Assumes y_pred is raw model output, one scalar value per genotype.
+
+	Scales this to (0,1) and interprets this as a allele frequency, uses formula
+	for Hardy-Weinberg equilibrium to get probabilities for genotypes [0,1,2].
+
+	:param y_pred: (n_samples x n_markers) tensor of raw network output for each sample and site
+	:return: (n_samples x n_markers x 3 tensor) of genotype probabilities for each sample and site
+	'''
+
 	if len(y_pred.shape) == 2:
 		alfreq = tf.keras.activations.sigmoid(y_pred)
 		alfreq = tf.expand_dims(alfreq, -1)
 		return tf.concat(((1-alfreq) ** 2, 2 * alfreq * (1 - alfreq), alfreq ** 2), axis=-1)
 	else:
 		return tf.nn.softmax(y_pred)
+
+def save_ae_weights(epoch, train_directory, autoencoder):
+	weights_file_prefix = train_directory + "/weights/" + str(epoch)
+	startTime = datetime.now()
+	if os.path.isdir(weights_file_prefix):
+		newname = train_directory+"_"+str(time.time())
+		os.rename(train_directory, newname)
+		print("... renamed " + train_directory + " to  " + newname)
+
+	autoencoder.save_weights(weights_file_prefix, save_format ="tf")
+	save_time = (datetime.now() - startTime).total_seconds()
+	save_times.append(save_time)
+	print("-------- Save time: {0} dir: {1}".format(save_time, weights_file_prefix))
+
 
 if __name__ == "__main__":
 	print("tensorflow version {0}".format(tf.__version__))
@@ -643,8 +668,11 @@ if __name__ == "__main__":
 
 		print("\n______________________________ Train ______________________________")
 
-		# for printing dimensions of layers
-		# output_valid_batch, encoded_data_valid_batch = autoencoder(input_valid[0:2], is_training = False, verbose = True)
+		# a small run-through of the model with just 2 samples for printing the dimensions of the layers (verbose=True)
+		print("Model layers and dimensions:")
+		print("-----------------------------")
+
+		output_valid_batch, encoded_data_valid_batch = autoencoder(input_valid[0:2], is_training = False, verbose = True)
 
 		######### Create objects for tensorboard summary ###############################
 
@@ -696,10 +724,10 @@ if __name__ == "__main__":
 			print("")
 			print("Epoch: {}/{}...".format(effective_epoch, epochs+resume_from))
 			print("--- Train loss: {:.4f}  time: {}".format(np.average(train_losses), train_time))
-			weights_file_prefix = train_directory + "/weights/" + str(effective_epoch)
+
 
 			if e % save_interval == 0:
-
+				startTime = datetime.now()
 				valid_losses = []
 				for jj in range(n_valid_batches):
 					start = jj*batch_size_valid
@@ -716,24 +744,15 @@ if __name__ == "__main__":
 					valid_loss_batch += sum(autoencoder.losses)
 					valid_losses.append(valid_loss_batch)
 
-				print("--- Valid loss: {:.4f}".format(np.average(valid_losses)))
-
 				if n_valid_samples > 0:
 					with valid_writer.as_default():
 						tf.summary.scalar('loss', np.average(valid_losses), step=step_counter)
 
+				valid_time = (datetime.now() - startTime).total_seconds()
+				print("--- Valid loss: {:.4f}  time: {}".format(np.average(valid_losses), valid_time))
 
-				startTime = datetime.now()
-				if os.path.isdir(weights_file_prefix):
-					newname = train_directory+"_"+str(time.time())
-					os.rename(train_directory, newname)
-					print("... renamed " + train_directory + " to  " + newname)
+				save_ae_weights(effective_epoch, train_directory, autoencoder)
 
-				autoencoder.save_weights(weights_file_prefix, save_format ="tf")
-				save_time = (datetime.now() - startTime).total_seconds()
-				save_times.append(save_time)
-				save_epochs.append(effective_epoch)
-				print("-------- Save time: {0} dir: {1}".format(save_time, weights_file_prefix))
 
 		outfilename = train_directory + "/" + "train_times.csv"
 
@@ -935,7 +954,7 @@ if __name__ == "__main__":
 
 		try:
 			plot_genotype_hist(np.array(genotypes_output), "{0}/{1}_e{2}".format(results_directory, "output_as_genotypes", epoch))
-			plot_genotype_hist(np.array(true_genotypes), "{0}/{1}_e{2}".format(results_directory, "true_genotypes", epoch))
+			plot_genotype_hist(np.array(true_genotypes), "{0}/{1}".format(results_directory, "true_genotypes"))
 		except:
 			pass
 

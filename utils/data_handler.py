@@ -90,7 +90,7 @@ class data_generator_ae:
 		:param mask: int array (n x m)
 		:param keep_fraction: probability to keep data
 		'''
-		mask = np.where(np.random.random_sample(mask.shape) > keep_fraction, 0, mask)
+		mask[np.random.random_sample(mask.shape) > keep_fraction] = 0
 
 	def _normalize(self):
 		'''
