@@ -1,7 +1,7 @@
 docopt
 grpcio
 setuptools==47.1.1
-tensorflow==2.1.0
+tensorflow>=2.2.0
 numpy==1.18.4
 scikit-learn
 matplotlib==3.2.1
