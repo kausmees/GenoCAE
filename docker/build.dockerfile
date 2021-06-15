@@ -26,7 +26,6 @@ RUN pip3 install --upgrade pip
 WORKDIR /workspace
 ADD ./requirements.txt /workspace
 RUN pip3 install -r /workspace/requirements.txt and &&\
-	rm /workspace/requirements.txt &&\
-    pip3 install tensorflow-gpu==2.2.0
+	rm /workspace/requirements.txt
 
 CMD ["/bin/bash"]
