@@ -31,7 +31,7 @@ docker build -t gcae/genocae:build -f docker/build.dockerfile .
 
 #### CLI
 
-``` Shell
+```
 $ docker run -it --rm -v ${PWD}:/workspace gcae/genocae:build python3 run_gcae.py --help
 
 GenoCAE.
@@ -62,7 +62,7 @@ Options:
 ```
 
 If you have a Docker with GPU support.
-``` Shell
+```
 $ docker run -it  --gpus=all --rm -v ${PWD}:/workspace gcae/genocae:build python3 run_gcae.py --help
 
 GenoCAE.
@@ -164,13 +164,13 @@ A small example data set **HumanOrigins249_tiny** is in  [example_tiny/](example
 
 These options affect how data is input to the model. Passed to the CLI with option **--data_opts**, specifying a json file in the directory [data_opts/](data_opts/)
 
-Example: ([data_opts/b.json](data_opts/b_0_1.json))
+Example: ([data_opts/b_0_4.json](data_opts/b_0_4.json))
 
     { "norm_mode" : "genotypewise01",
       "norm_opts" : {"flip": false, "missing_val":-1.0},
       "impute_missing" : true,
       "validation_split" : 0.2,
-      "sparsifies" : [0.0, 0.1]
+      "sparsifies" : [0.0, 0.1, 0.2, 0.3, 0.4]
      }
 
 
@@ -333,7 +333,7 @@ Example with categorical cross-entropy loss and a learning rate scheme: ([train_
 
 optional:
 
-* **lr_scheme:** scheme to apply to learning rate. the example above is to use exponential decay, see [tf documentation](https://www.tensorflow.org/versions/r1.12/api_docs/python/tf/train/exponential_decay).
+* **lr_scheme:** scheme to apply to learning rate. the example above is to use exponential decay, see [tf documentation](https://www.tensorflow.org/api_docs/python/tf/keras/optimizers/schedules/ExponentialDecay).
 
 
 > if the loss is sigmoid_cross_entropy_with_logits, the normalized genotypes should be in range (0,1) - so normalized using e.g. genotypewise01
