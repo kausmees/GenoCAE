@@ -16,6 +16,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import f1_score
 from scipy import stats
 from pandas_plink import read_plink
+import csv
 
 
 
@@ -79,6 +80,7 @@ class data_generator_ae:
 		self.ind_pop_list_train_orig = ind_pop_list[self.sample_idx_all]
 		self.train_set_indices = np.array(range(self.n_train_samples))
 
+		self.n_valid_samples = 0
 
 	def _sparsify(self, mask, keep_fraction):
 		'''
@@ -564,7 +566,7 @@ def write_h5(filename, dataname, data, replace_file = False):
 		with h5py.File(filename, 'a') as hf:
 			try:
 				hf.create_dataset(dataname,  data = data)
-			except RuntimeError:
+			except (RuntimeError, ValueError):
 				print("Replacing dataset {0} in {1}".format(dataname, filename))
 				del hf[dataname]
 				hf.create_dataset(dataname,  data = data)
@@ -780,6 +782,43 @@ def get_projected_epochs(encoded_data_file):
 		print("Encoded data file not found: {0} ".format(encoded_data_file))
 
 	return epochs
+
+def write_metric_per_epoch_to_csv(filename, values, epochs):
+	'''
+	Write value of a metric per epoch to csv file, extending exisitng data if it exists.
+
+	Return the total data in the file, the given values and epochs appended to
+	any pre-existing data in the file.
+
+	Assumes format of file is epochs on first row, corresponding values on second row.
+
+	:param filename: full name and path of csv file
+	:param values: array of metric values
+	:param epochs: array of corresponding epochs
+	:return: array of epochs appended to any pre-existing epochs in filename
+			 and
+			 array of metric values appended to any pre-existing values in filename
+	'''
+	epochs_saved = np.array([])
+	values_saved = np.array([])
+
+	try:
+		with open(filename, mode='r') as res_file:
+			res_reader = csv.reader(res_file, delimiter=',', quoting=csv.QUOTE_NONNUMERIC)
+			epochs_saved = next(res_reader)
+			values_saved = next(res_reader)
+	except:
+		pass
+
+	epochs_combined = np.concatenate((epochs_saved, epochs), axis=0)
+	values_combined = np.concatenate((values_saved, values), axis=0)
+
+	with open(filename, mode='w') as res_file:
+		res_writer = csv.writer(res_file, delimiter=',')
+		res_writer.writerow(epochs_combined)
+		res_writer.writerow(np.array(values_combined))
+
+	return  epochs_combined, values_combined
 
 
 def plot_genotype_hist(genotypes, filename):

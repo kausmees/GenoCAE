@@ -359,7 +359,8 @@ This creates a model training directory: **ae_out/ae.M1.ex3.b_0_4.HumanOrigins24
 
 The following files are also created:
 * train_times.csv: time in seconds to train each epoch
-* save_times.csv: time in seconds to save each epoch to disk
+* losses_from_train_t.csv: loss function value on the training set per epoch
+* losses_from_train_v.csv: loss function value on the validation set per epoch
 
 
 You can [install tensorboard](https://pypi.org/project/tensorboard/) to use their suite of web tools for inspecting TensorFlow runs.
@@ -386,7 +387,7 @@ This creates a directory named after the projected data containing:
 
 1. a file **encoded_data.h5** containing the projected data (= the encoded data) for all samples at each epoch. this file is used by the plot, evaluate and animate commands.
 2. for each saved epoch: a plot of the projected samples colored according to population, and if specified, superpopulation. a legend is written to a separate file.
-3. a plot and csv file of the **loss function value** of the model per epoch
+3. a plot and csv file of the **loss function value** of the model per epoch. note that this is the loss for the entire data set.
 4. a plot and csv file of the **genotype concordance** of the model per epoch (this is the rate that the model output is equal to the model input). the black line shows the baseline genotype concordance, given by guessing the most frequently occurring genotype per marker.
 5. a plot **true_genotypes.pdf** showing a histogram of the true (input) genotypes that the model is trained on
 6. a plot **output_as_genotypes.pdf** showing a histogram of the model output interpreted as genotypes, for the last epoch
