@@ -670,7 +670,10 @@ if __name__ == "__main__":
 		print("Model layers and dimensions:")
 		print("-----------------------------")
 
-		output_valid_batch, encoded_data_valid_batch = autoencoder(input_valid[0:2], is_training = False, verbose = True)
+		input_test, targets_test, _  = dg.get_train_set(0.0)
+		if not missing_mask_input:
+			input_test = input_test[:,:,0, np.newaxis]
+		output_test, encoded_data_test = autoencoder(input_test[0:2], is_training = False, verbose = True)
 
 		######### Create objects for tensorboard summary ###############################
 

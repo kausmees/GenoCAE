@@ -78,7 +78,7 @@ class data_generator_ae:
 		self.n_train_samples_orig = len(self.sample_idx_all)
 		self.n_train_samples = self.n_train_samples_orig
 		self.ind_pop_list_train_orig = ind_pop_list[self.sample_idx_all]
-		self.train_set_indices = np.array(range(self.n_train_samples))
+		self.train_set_indices = np.arange(self.n_train_samples)
 
 		self.n_valid_samples = 0
 
@@ -170,7 +170,10 @@ class data_generator_ae:
 
 		_, _, self.sample_idx_train, self.sample_idx_valid = get_test_samples_stratified(self.genotypes_train_orig, self.ind_pop_list_train_orig, validation_split)
 
-		self.train_set_indices = np.array(range((len(self.sample_idx_train))))
+		self.sample_idx_train = np.array(self.sample_idx_train)
+		self.sample_idx_valid = np.array(self.sample_idx_valid)
+
+		self.train_set_indices = np.array(range(len(self.sample_idx_train)))
 		self.n_valid_samples = len(self.sample_idx_valid)
 		self.n_train_samples = len(self.sample_idx_train)
 
@@ -184,7 +187,13 @@ class data_generator_ae:
 				 target_data_valid (n_valid_samples x n_markers): original validation genotypes
 				 ind_pop_list valid (n_valid_samples x 2) : individual and population IDs of validation samples
 
+				 or
+				 empty arrays if no valid set defined
+
 		'''
+
+		if self.n_valid_samples == 0:
+			return np.array([]), np.array([]), np.array([])
 
 		# n_valid_samples x n_markers x 2
 		input_data_valid = np.full((len(self.sample_idx_valid),self.genotypes_train_orig.shape[1],2),1.0)
