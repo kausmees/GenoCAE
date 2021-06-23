@@ -24,8 +24,8 @@ jobs:
         run: sudo apt install -qq libcurl4-openssl-dev
 
       - name: Install dependencies
-        run: cd GenoCAE/ ; pip3 install -r requirements.txt
+        run: pip3 install -r requirements.txt
 
       - name: Training and evaluation of models help
-        run: cd GenoCAE/ ; python3 run_gcae.py --help
+        run: python3 run_gcae.py --help
 
