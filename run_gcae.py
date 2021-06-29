@@ -27,7 +27,7 @@ Options:
 
 """
 
-from docopt import docopt
+from docopt import docopt, DocoptExit
 import tensorflow as tf
 from tensorflow.keras import Model, layers
 from datetime import datetime
@@ -361,7 +361,12 @@ if __name__ == "__main__":
 	print("tensorflow version {0}".format(tf.__version__))
 	tf.keras.backend.set_floatx('float32')
 
-	arguments = docopt(__doc__, version='GenoAE 1.0')
+	try:
+		arguments = docopt(__doc__, version='GenoAE 1.0')
+	except DocoptExit:
+		print("Invalid command. Run 'python run_gcae.py --help' for more information.")
+		exit(1)
+
 	for k in list(arguments.keys()):
 		knew = k.split('--')[-1]
 		arg=arguments.pop(k)
@@ -487,7 +492,7 @@ if __name__ == "__main__":
 			print("------------------------------------------------------------------------")
 			print("Error: File {0} not found.".format(encoded_data_file))
 			print("------------------------------------------------------------------------")
-			exit()
+			exit(1)
 
 		epochs = get_projected_epochs(encoded_data_file)
 
@@ -499,21 +504,21 @@ if __name__ == "__main__":
 				print("------------------------------------------------------------------------")
 				print("Error: Epoch {0} not found in {1}.".format(epoch, encoded_data_file))
 				print("------------------------------------------------------------------------")
-				exit()
+				exit(1)
 
 		if doing_clustering:
 			if arguments['animate']:
 				print("------------------------------------------------------------------------")
 				print("Error: Animate not supported for genetic clustering model.")
 				print("------------------------------------------------------------------------")
-				exit()
+				exit(1)
 
 
 			if arguments['plot'] and not superpopulations_file:
 				print("------------------------------------------------------------------------")
 				print("Error: Plotting of genetic clustering results requires a superpopulations file.")
 				print("------------------------------------------------------------------------")
-				exit()
+				exit(1)
 
 	else:
 		dg = data_generator_ae(data_prefix,
