@@ -61,6 +61,10 @@ class data_generator_ae:
 		'''
 		Replace missing values in genotypes with the most frequent value per SNP.
 
+		If two or more values occur the same number of times, take the smallest of them.
+		NOTE: this means that the way genotypes are represented (num ALT or num REF alles) can affect
+		which genotype gets imputed for those cases where HET occurs as many times as a HOM genotype.
+
 		:param genotypes: (n_markers x n_samples) numpy array of genotypes, missing values represented by 9.
 		'''
 
@@ -967,6 +971,8 @@ def get_test_samples_stratified(genotypes, ind_pop_list, test_split):
 def get_most_frequent(data):
 	'''
 	Get the most frequently occurring value in data along axis 0.
+	If two or more values occur the same number of times, take the smallest of them.
+
 	:param data: the data
 	:return:
 	'''
