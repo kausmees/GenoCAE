@@ -9,9 +9,9 @@ Usage:
 
 Options:
   -h --help             show this screen
-  --datadir=<name>      directory where sample data is stored
+  --datadir=<name>      directory where sample data is stored. if not absolute: assumed relative to GenoCAE/ directory.
   --data=<name>         file prefix, not including path, of the data files (EIGENSTRAT of PLINK format)
-  --trainedmodeldir=<name>     base path where to save model training directories. default: ae_out/
+  --trainedmodeldir=<name>     base path where to save model training directories. if not absolute: assumed relative to GenoCAE/ directory. default: ae_out/
   --model_id=<name>     model id, corresponding to a file models/model_id.json
   --train_opts_id=<name>train options id, corresponding to a file train_opts/train_opts_id.json
   --data_opts_id=<name> data options id, corresponding to a file data_opts/data_opts_id.json
@@ -21,7 +21,7 @@ Options:
   --trainedmodelname=<name> name of the model training directory to fetch saved model state from when project/plot/evaluating
   --pdata=<name>     	file prefix, not including path, of data to project/plot/evaluate. if not specified, assumed to be the same the model was trained on.
   --epoch<num>          epoch at which to project/plot/evaluate data. if not specified, all saved epochs will be used
-  --superpops<name>     path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting.
+  --superpops<name>     path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting. if not absolute path: assumed relative to GenoCAE/ directory.
   --metrics=<name>      the metric(s) to evaluate, e.g. hull_error of f1 score. can pass a list with multiple metrics, e.g. "hull_error,f1_score"
 
 
@@ -45,7 +45,9 @@ import csv
 import copy
 import h5py
 import matplotlib.animation as animation
+from pathlib import Path
 
+GCAE_DIR = Path(__file__).resolve().parent
 class Autoencoder(Model):
 
 	def __init__(self, model_architecture, n_markers, noise_std, regularizer):
@@ -374,13 +376,19 @@ if __name__ == "__main__":
 
 	if arguments["trainedmodeldir"]:
 		trainedmodeldir = arguments["trainedmodeldir"]
+		if not os.path.isabs(trainedmodeldir):
+			trainedmodeldir="{}/{}/".format(GCAE_DIR, trainedmodeldir)
+
 	else:
-		trainedmodeldir="ae_out/"
+		trainedmodeldir="{}/ae_out/".format(GCAE_DIR)
 
 	if arguments["datadir"]:
 		datadir = arguments["datadir"]
+		if not os.path.isabs(datadir):
+			datadir="{}/{}/".format(GCAE_DIR, datadir)
+
 	else:
-		datadir="data/"
+		datadir="{}/data/".format(GCAE_DIR)
 
 	if arguments["trainedmodelname"]:
 		trainedmodelname = arguments["trainedmodelname"]
@@ -398,13 +406,13 @@ if __name__ == "__main__":
 		model_id = arguments["model_id"]
 		train_directory = False
 
-	with open("data_opts/" + data_opts_id+".json") as data_opts_def_file:
+	with open("{}/data_opts/{}.json".format(GCAE_DIR, data_opts_id)) as data_opts_def_file:
 		data_opts = json.load(data_opts_def_file)
 
-	with open("train_opts/" + train_opts_id+".json") as train_opts_def_file:
+	with open("{}/train_opts/{}.json".format(GCAE_DIR, train_opts_id)) as train_opts_def_file:
 		train_opts = json.load(train_opts_def_file)
 
-	with open("models/" + model_id+".json") as model_def_file:
+	with open("{}/models/{}.json".format(GCAE_DIR, model_id)) as model_def_file:
 		model_architecture = json.load(model_def_file)
 
 	for layer_def in model_architecture["layers"]:
@@ -434,6 +442,9 @@ if __name__ == "__main__":
 	regularizer = train_opts["regularizer"]
 
 	superpopulations_file = arguments['superpops']
+	if superpopulations_file and not os.path.isabs(os.path.dirname(superpopulations_file)):
+		superpopulations_file="{}/{}/{}".format(GCAE_DIR, os.path.dirname(superpopulations_file), Path(superpopulations_file).name)
+
 	norm_opts = data_opts["norm_opts"]
 	norm_mode = data_opts["norm_mode"]
 	validation_split = data_opts["validation_split"]

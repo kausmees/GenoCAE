@@ -45,9 +45,9 @@ Usage:
 
 Options:
   -h --help             show this screen
-  --datadir=<name>       directory where sample data is stored
+  --datadir=<name>       directory where sample data is stored. if not absolute: assumed relative to GenoCAE/ directory.
   --data=<name>         file prefix, not including path, of the data files (EIGENSTRAT of PLINK format)
-  --trainedmodeldir=<name>     base path where to save model training directories. default: ae_out/
+  --trainedmodeldir=<name>     base path where to save model training directories. if not absolute: assumed relative to GenoCAE/ directory. default: ae_out/
   --model_id=<name>     model id, corresponding to a file models/model_id.json
   --train_opts_id=<name>train options id, corresponding to a file train_opts/train_opts_id.json
   --data_opts_id=<name> data options id, corresponding to a file data_opts/data_opts_id.json
@@ -57,7 +57,7 @@ Options:
   --trainedmodelname=<name> name of the model training directory to fetch saved model state from when project/plot/evaluating
   --pdata=<name>        file prefix, not including path, of data to project/plot/evaluate. if not specified, assumed to be the same the model was trained on.
   --epoch<num>          epoch at which to project/plot/evaluate data. if not specified, all saved epochs will be used
-  --superpops<name>     path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting.
+  --superpops<name>     path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting. if not absolute path: assumed relative to GenoCAE/ directory.
   --metrics=<name>      the metric(s) to evaluate, e.g. hull_error of f1 score. can pass a list with multiple metrics, e.g. "hull_error,f1_score"
 ```
 
@@ -76,9 +76,9 @@ Usage:
 
 Options:
   -h --help             show this screen
-  --datadir=<name>       directory where sample data is stored
+  --datadir=<name>       directory where sample data is stored. if not absolute: assumed relative to GenoCAE/ directory.
   --data=<name>         file prefix, not including path, of the data files (EIGENSTRAT of PLINK format)
-  --trainedmodeldir=<name>     base path where to save model training directories. default: ae_out/
+  --trainedmodeldir=<name>     base path where to save model training directories. if not absolute: assumed relative to GenoCAE/ directory. default: ae_out/
   --model_id=<name>     model id, corresponding to a file models/model_id.json
   --train_opts_id=<name>train options id, corresponding to a file train_opts/train_opts_id.json
   --data_opts_id=<name> data options id, corresponding to a file data_opts/data_opts_id.json
@@ -88,7 +88,7 @@ Options:
   --trainedmodelname=<name> name of the model training directory to fetch saved model state from when project/plot/evaluating
   --pdata=<name>        file prefix, not including path, of data to project/plot/evaluate. if not specified, assumed to be the same the model was trained on.
   --epoch<num>          epoch at which to project/plot/evaluate data. if not specified, all saved epochs will be used
-  --superpops<name>     path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting.
+  --superpops<name>     path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting. if not absolute path: assumed relative to GenoCAE/ directory.
   --metrics=<name>      the metric(s) to evaluate, e.g. hull_error of f1 score. can pass a list with multiple metrics, e.g. "hull_error,f1_score"
 ```
 
@@ -111,9 +111,9 @@ The training and evaluation of models is wrapped by a command-line interface (CL
 
     Options:
       -h --help             show this screen
-      --datadir=<name>      directory where sample data is stored
+      --datadir=<name>      directory where sample data is stored. if not absolute: assumed relative to GenoCAE/ directory.
       --data=<name>         file prefix of the data files (EIGENSTRAT or PLINK format)
-      --trainedmodeldir=<name>     base path where to save model training directories. default: ae_out/
+      --trainedmodeldir=<name>     base path where to save model training directories. if not absolute: assumed relative to GenoCAE/ directory. default: ae_out/
       --model_id=<name>     model id, corresponding to a file models/model_id.json
       --train_opts_id=<name>train options id, corresponding to a file train_opts/train_opts_id.json
       --data_opts_id=<name> data options id, corresponding to a file data_opts/data_opts_id.json
@@ -123,7 +123,7 @@ The training and evaluation of models is wrapped by a command-line interface (CL
       --trainedmodelname=<name> name of the model training directory to fetch saved model state from when project/plot/evaluating
       --pdata=<name>     	file prefix of data to project/plot/evaluate, if different than the data which the model was trained on
       --epoch<num>          epoch at which to project/plot/evaluate data. if not specified, all saved epochs will be used
-      --superpops<name>     path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting.
+      --superpops<name>     path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting. if not absolute path: assumed relative to GenoCAE/ directory.
       --metrics=<name>      the metric(s) to evaluate, e.g. hull_error of f1 score. can pass a list with multiple metrics, e.g. "hull_error,f1_score_3,f1_score_5"
 
 The main commands are:
