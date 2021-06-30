@@ -447,6 +447,10 @@ Legend:
 
 ![Legend](images/legend_HO_tiny.png)
 
+## Getting started
+
+See [tips](tips.md) for some rules of thumb for model architecture settings and hyperparameter tuning that might be a good place to start for using GCAE on your own data.
+
 
 ## References
 
