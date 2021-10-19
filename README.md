@@ -2,6 +2,8 @@
 
 Convolutional autoencoder for genotype data, as described in [1]
 
+An interactive version of the dimensionality reduction visualization from the paper can be found [here](https://www.kristiinaausmees.com/bokeh).
+
 ## Installation
 
 ### Manual Installation
