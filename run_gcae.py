@@ -1,7 +1,7 @@
 """GenoCAE.
 
 Usage:
-  run_gcae.py train --datadir=<name> --data=<name> --model_id=<name> --train_opts_id=<name> --data_opts_id=<name> --save_interval=<num> --epochs=<num> [--resume_from=<num> --trainedmodeldir=<name> ]
+  run_gcae.py train --datadir=<name> --data=<name> --model_id=<name> --train_opts_id=<name> --data_opts_id=<name> --epochs=<num> [--resume_from=<num> --trainedmodeldir=<name> --patience=<num> --save_interval=<num> --start_saving_from=<num> ]
   run_gcae.py project --datadir=<name>   [ --data=<name> --model_id=<name>  --train_opts_id=<name> --data_opts_id=<name> --superpops=<name> --epoch=<num> --trainedmodeldir=<name>   --pdata=<name> --trainedmodelname=<name>]
   run_gcae.py plot --datadir=<name> [  --data=<name>  --model_id=<name> --train_opts_id=<name> --data_opts_id=<name>  --superpops=<name> --epoch=<num> --trainedmodeldir=<name>  --pdata=<name> --trainedmodelname=<name>]
   run_gcae.py animate --datadir=<name>   [ --data=<name>   --model_id=<name> --train_opts_id=<name> --data_opts_id=<name>  --superpops=<name> --epoch=<num> --trainedmodeldir=<name> --pdata=<name> --trainedmodelname=<name>]
@@ -9,21 +9,22 @@ Usage:
 
 Options:
   -h --help             show this screen
-  --datadir=<name>      directory where sample data is stored. if not absolute: assumed relative to GenoCAE/ directory.
+  --datadir=<name>      directory where sample data is stored. if not absolute: assumed relative to GenoCAE/ directory. DEFAULT: data/
   --data=<name>         file prefix, not including path, of the data files (EIGENSTRAT of PLINK format)
-  --trainedmodeldir=<name>     base path where to save model training directories. if not absolute: assumed relative to GenoCAE/ directory. default: ae_out/
+  --trainedmodeldir=<name>     base path where to save model training directories. if not absolute: assumed relative to GenoCAE/ directory. DEFAULT: ae_out/
   --model_id=<name>     model id, corresponding to a file models/model_id.json
   --train_opts_id=<name>train options id, corresponding to a file train_opts/train_opts_id.json
   --data_opts_id=<name> data options id, corresponding to a file data_opts/data_opts_id.json
   --epochs<num>         number of epochs to train
-  --resume_from<num>	saved epoch to resume training from. set to -1 for latest saved epoch.
-  --save_interval<num>	epoch intervals at which to save state of model
+  --resume_from<num>	saved epoch to resume training from. set to -1 for latest saved epoch. DEFAULT: None (don't resume)
+  --save_interval<num>	epoch intervals at which to save state of model. DEFAULT: None (don't save)
+  --start_saving_from<num>	number of epochs to train before starting to save model state. DEFAULT: 0.
   --trainedmodelname=<name> name of the model training directory to fetch saved model state from when project/plot/evaluating
   --pdata=<name>     	file prefix, not including path, of data to project/plot/evaluate. if not specified, assumed to be the same the model was trained on.
-  --epoch<num>          epoch at which to project/plot/evaluate data. if not specified, all saved epochs will be used
+  --epoch<num>          epoch at which to project/plot/evaluate data. DEFAULT: all saved epochs
   --superpops<name>     path+filename of file mapping populations to superpopulations. used to color populations of the same superpopulation in similar colors in plotting. if not absolute path: assumed relative to GenoCAE/ directory.
-  --metrics=<name>      the metric(s) to evaluate, e.g. hull_error of f1 score. can pass a list with multiple metrics, e.g. "hull_error,f1_score"
-
+  --metrics=<name>      the metric(s) to evaluate, e.g. hull_error of f1 score. can pass a list with multiple metrics, e.g. "f1_score_3,f1_score_5". DEFAULT: f1_score_3
+  --patience=<num>	 	stop training after this number of epochs without improving lowest validation. DEFAULT: None
 
 """
 
@@ -39,6 +40,7 @@ import json
 import numpy as np
 import time
 import os
+import glob
 import math
 import matplotlib.pyplot as plt
 import csv
@@ -349,11 +351,6 @@ def alfreqvector(y_pred):
 def save_ae_weights(epoch, train_directory, autoencoder):
 	weights_file_prefix = train_directory + "/weights/" + str(epoch)
 	startTime = datetime.now()
-	if os.path.isdir(weights_file_prefix):
-		newname = train_directory+"_"+str(time.time())
-		os.rename(train_directory, newname)
-		print("... renamed " + train_directory + " to  " + newname)
-
 	autoencoder.save_weights(weights_file_prefix, save_format ="tf")
 	save_time = (datetime.now() - startTime).total_seconds()
 	print("-------- Saving weights: {0} time: {1}".format(weights_file_prefix, save_time))
@@ -597,7 +594,21 @@ if __name__ == "__main__":
 	if arguments['train']:
 
 		epochs = int(arguments["epochs"])
-		save_interval = int(arguments["save_interval"])
+
+		try:
+			save_interval = int(arguments["save_interval"])
+		except:
+			save_interval = epochs
+
+		try:
+			start_saving_from = int(arguments["start_saving_from"])
+		except:
+			start_saving_from = 0
+
+		try:
+			patience = int(arguments["patience"])
+		except:
+			patience = epochs
 
 		try:
 			resume_from = int(arguments["resume_from"])
@@ -703,6 +714,10 @@ if __name__ == "__main__":
 		# valid losses per epoch
 		losses_v = []
 
+
+		min_valid_loss = np.inf
+		min_valid_loss_epoch = None
+
 		for e in range(1,epochs+1):
 			startTime = datetime.now()
 			dg.shuffle_train_samples()
@@ -776,11 +791,30 @@ if __name__ == "__main__":
 
 				losses_v.append(valid_loss_this_epoch)
 				valid_time = (datetime.now() - startTime).total_seconds()
-				print("--- Valid loss: {:.4f}  time: {}".format(valid_loss_this_epoch, valid_time))
 
-			if e % save_interval == 0:
+				if valid_loss_this_epoch <= min_valid_loss:
+					min_valid_loss = valid_loss_this_epoch
+					prev_min_val_loss_epoch = min_valid_loss_epoch
+					min_valid_loss_epoch = effective_epoch
+
+					if e > start_saving_from:
+						for f in glob.glob("{}/weights/{}.*".format(train_directory, prev_min_val_loss_epoch)):
+							os.remove(f)
+						save_ae_weights(effective_epoch, train_directory, autoencoder)
+
+				evals_since_min_valid_loss = effective_epoch - min_valid_loss_epoch
+				print("--- Valid loss: {:.4f}  time: {} min loss: {:.4f} epochs since: {}".format(valid_loss_this_epoch, valid_time, min_valid_loss, evals_since_min_valid_loss))
+
+				if evals_since_min_valid_loss >= patience:
+					break
+
+			if e % save_interval == 0 and e > start_saving_from :
 				save_ae_weights(effective_epoch, train_directory, autoencoder)
 
+
+
+
+		save_ae_weights(effective_epoch, train_directory, autoencoder)
 
 		outfilename = train_directory + "/" + "train_times.csv"
 		write_metric_per_epoch_to_csv(outfilename, train_times, train_epochs)
@@ -1078,7 +1112,11 @@ if __name__ == "__main__":
 		print("Evaluating epochs {}".format(epochs))
 
 		# all metrics assumed to have a single value per epoch
-		metric_names = arguments['metrics'].split(",")
+		if arguments['metrics']:
+			metric_names = arguments['metrics'].split(",")
+		else:
+			metric_names = ["f1_score_3"]
+
 		metrics = dict()
 
 		for m in metric_names:
