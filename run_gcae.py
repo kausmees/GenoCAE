@@ -348,8 +348,8 @@ def alfreqvector(y_pred):
 	else:
 		return tf.nn.softmax(y_pred)
 
-def save_ae_weights(epoch, train_directory, autoencoder):
-	weights_file_prefix = train_directory + "/weights/" + str(epoch)
+def save_ae_weights(epoch, train_directory, autoencoder, prefix=""):
+	weights_file_prefix = "{}/weights/{}{}".format(train_directory, prefix, epoch)
 	startTime = datetime.now()
 	autoencoder.save_weights(weights_file_prefix, save_format ="tf")
 	save_time = (datetime.now() - startTime).total_seconds()
@@ -798,9 +798,9 @@ if __name__ == "__main__":
 					min_valid_loss_epoch = effective_epoch
 
 					if e > start_saving_from:
-						for f in glob.glob("{}/weights/{}.*".format(train_directory, prev_min_val_loss_epoch)):
+						for f in glob.glob("{}/weights/min_valid.{}.*".format(train_directory, prev_min_val_loss_epoch)):
 							os.remove(f)
-						save_ae_weights(effective_epoch, train_directory, autoencoder)
+						save_ae_weights(effective_epoch, train_directory, autoencoder, prefix = "min_valid.")
 
 				evals_since_min_valid_loss = effective_epoch - min_valid_loss_epoch
 				print("--- Valid loss: {:.4f}  time: {} min loss: {:.4f} epochs since: {}".format(valid_loss_this_epoch, valid_time, min_valid_loss, evals_since_min_valid_loss))

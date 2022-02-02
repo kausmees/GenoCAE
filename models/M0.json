@@ -1,0 +1,27 @@
+{"layers":
+[
+  {"class": "Conv1D", "module":"tf.keras.layers", "args": {"filters":4, "kernel_size":5, "padding":"same", "activation":"elu", "strides":1}},
+  {"class": "BatchNormalization", "module":"tf.keras.layers", "args": {}},
+  {"class": "MaxPool1D", "module":"tf.keras.layers", "args": {"pool_size":5, "strides":2, "padding":"same"}},
+  {"class": "Conv1D", "module":"tf.keras.layers", "args": {"filters":4, "kernel_size":5, "padding":"same", "activation":"elu"}},
+  {"class": "BatchNormalization", "module":"tf.keras.layers", "args": {}},
+  {"class": "Flatten", "module":"tf.keras.layers", "args": {}},
+  {"class": "Dropout", "module":"tf.keras.layers", "args": {"rate":0.01}},
+  {"class": "Dense", "module":"tf.keras.layers", "args": {"units":10, "activation":"elu"}},
+  {"class": "Dense", "module":"tf.keras.layers", "encoding" : true, "args": {"units":2, "name":"encoded"}},
+  {"class": "Dense", "module":"tf.keras.layers", "args": {"units":10, "activation":"elu"}},
+  {"class": "Dropout", "module":"tf.keras.layers", "args": {"rate":0.01}},
+  {"class": "Dense", "module":"tf.keras.layers", "args": {"units":"ns[1]*4"}},
+  {"class": "Reshape", "module":"tf.keras.layers", "args": {"target_shape":"(ns[1],4)", "name":"i_msvar"}},
+  {"class": "Conv1D", "module":"tf.keras.layers", "args": {"filters":4, "kernel_size":5, "padding":"same", "activation":"elu"}},
+  {"class": "BatchNormalization", "module":"tf.keras.layers", "args": {}},
+  {"class": "Reshape", "module":"tf.keras.layers", "args": {"target_shape":"(ns[1],1,4)"}},
+  {"class": "UpSampling2D", "module":"tf.keras.layers", "args": {"size":"(2,1)"}},
+  {"class": "Reshape", "module":"tf.keras.layers", "args": {"target_shape":"(ns[1]*2,4)"}},
+  {"class": "Conv1D", "module":"tf.keras.layers", "args": {"filters":4, "kernel_size":5, "padding":"same", "activation":"elu", "name":"nms"}},
+  {"class": "BatchNormalization", "module":"tf.keras.layers", "args": {}},
+  {"class": "Conv1D", "module":"tf.keras.layers", "args": {"filters":1, "kernel_size":1, "padding":"same"}},
+  {"class": "Flatten", "module":"tf.keras.layers", "args": {"name":"logits"}}
+]
+
+}
