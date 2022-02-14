@@ -8,24 +8,20 @@ LABEL maintainer="Dong Wang"
 
 ENV PATH="/root/miniconda3/bin:${PATH}"
 ARG PATH="/root/miniconda3/bin:${PATH}"
+ARG DEBIAN_FRONTEND=noninteractive
 
 SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update && apt-get upgrade -y &&\
-    apt-get install -y wget
+apt-get install -y wget python3-pip
 
-# Python
-RUN wget \
-    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-    && mkdir /root/.conda \
-    && bash Miniconda3-latest-Linux-x86_64.sh -b \
-    && rm -f Miniconda3-latest-Linux-x86_64.sh
-
-RUN pip3 install --upgrade pip
+# Tip from Pavlin Mitev
+RUN python3 -m pip install --no-cache-dir --upgrade pip
+# RUN python3 -m pip install --upgrade pip
 
 WORKDIR /workspace
 ADD ./requirements.txt /workspace
-RUN pip3 install -r /workspace/requirements.txt and &&\
-	rm /workspace/requirements.txt
+RUN python3 -m pip install -r /workspace/requirements.txt and &&\
+rm /workspace/requirements.txt
 
 CMD ["/bin/bash"]
