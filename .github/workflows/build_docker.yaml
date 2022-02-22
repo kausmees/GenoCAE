@@ -1,0 +1,31 @@
+# Build the Docker container
+# and run it minimally
+
+on:
+  push:
+  pull_request:
+
+name: build_docker
+
+jobs:
+  build_docker:
+
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install libcurl4-openssl-dev
+        run: sudo apt install -qq libcurl4-openssl-dev
+
+      - name: Build the Docker image
+        run: ./build_docker_image.sh
+
+      - name: View the Docker images
+        run: sudo docker image ls
+
+      # Cannot run it, no idea how
+      #- name: Run the Docker image
+      #  run: docker run -it --rm -v ${PWD}:/workspace gcae/genocae:build python3 run_gcae.py --help
+
