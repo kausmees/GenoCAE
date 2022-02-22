@@ -426,5 +426,5 @@ See [tips](tips.md) for some rules of thumb for model architecture settings and 
 
 ## References
 
- * [1] Ausmees, Kristiina and Nettelblad, Carl. "A deep learning framework for characterization of genotype data." bioRxiv (2020). [here](https://www.biorxiv.org/content/10.1101/2020.09.30.320994v1.abstract)
+ * [1] Kristiina Ausmees, Carl Nettelblad, A deep learning framework for characterization of genotype data, G3 Genes|Genomes|Genetics, 2022;, jkac020, [https://doi.org/10.1093/g3journal/jkac020](https://doi.org/10.1093/g3journal/jkac020)
 
